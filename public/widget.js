@@ -38,8 +38,8 @@ async function initWindow() {
   else fitWindow();
   // 快捷键被别的软件占用时不弹窗，只在提示文字里说明
   if (!s.shortcutOk) {
-    $('btn-hide').title = '隐藏成小图标（快捷键 Ctrl+Alt+W 被别的软件占用了，暂时不能用）';
-    $('hide-icon').title = '点一下恢复，按住可以拖动（快捷键 Ctrl+Alt+W 被别的软件占用了）';
+    $('btn-hide').title = `隐藏成小图标（快捷键 ${PLATFORM_TEXT.shortcut} 被别的软件占用了，暂时不能用）`;
+    $('hide-icon').title = `点一下恢复，按住可以拖动（快捷键 ${PLATFORM_TEXT.shortcut} 被别的软件占用了）`;
   }
 }
 
@@ -125,6 +125,9 @@ function applyHidden(hidden) {
   } else fitWindow();
 }
 
+// 快捷键说法按系统显示
+$('btn-hide').title = `隐藏成小图标（${PLATFORM_TEXT.shortcut}）`;
+$('hide-icon').title = `点一下恢复，按住可以拖动（${PLATFORM_TEXT.shortcut}）`;
 $('btn-hide').addEventListener('click', () => deskApi?.setHidden(true));
 deskApi?.onHidden?.(applyHidden);
 
@@ -258,7 +261,9 @@ async function load(refresh = false) {
   } catch (err) {
     // 已经有数据时保留画面，只在顶栏说明失败原因
     state.syncError = { message: err.message === 'Failed to fetch' ? '连不上本机服务器' : err.message, code: err.code };
-    if (!state.data) $('pane').innerHTML = `<div class="empty">出错了：${escapeHtml(state.syncError.message)}</div>`;
+    // 顶栏放不下长句子，原因放在鼠标提示里
+    if (err.message === 'Failed to fetch') state.syncError.hint = PLATFORM_TEXT.serverHint;
+    if (!state.data) $('pane').innerHTML = `<div class="empty">出错了：${escapeHtml(state.syncError.message)}${state.syncError.hint ? `<br>${escapeHtml(state.syncError.hint)}` : ''}</div>`;
   } finally {
     state.loading = false;
     $('btn-sync').classList.remove('spin');
@@ -279,7 +284,7 @@ function showSyncTime() {
   const today = when.toDateString() === new Date().toDateString();
   const text = `同步于 ${today ? '' : `${when.getMonth() + 1}/${when.getDate()} `}${when.getHours()}:${String(when.getMinutes()).padStart(2, '0')}`;
   el.textContent = state.syncError ? `同步失败：${state.syncError.message}` : text;
-  el.title = state.syncError ? `上次成功${text}${state.syncError.code === 'auth' ? '，点这里重新连接' : ''}` : '';
+  el.title = state.syncError ? `上次成功${text}${state.syncError.code === 'auth' ? '，点这里重新连接' : ''}${state.syncError.hint ? `。${state.syncError.hint}` : ''}` : '';
   el.classList.toggle('stale', Boolean(state.syncError) || Date.now() - when > 60 * 60 * 1000);
   el.classList.toggle('relogin', state.syncError?.code === 'auth');
 }

@@ -1,6 +1,6 @@
 // 桌面小工具：一个无边框、半透明、可置顶的小窗口，内容就是 public/widget.html。
 // 启动时顺便在本机启动数据服务器（server.js），关闭窗口时一起退出。
-const { app, BrowserWindow, ipcMain, shell, screen, powerMonitor, globalShortcut } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, screen, powerMonitor, globalShortcut, Menu } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const server = require('../server');
@@ -11,7 +11,9 @@ const WIDTH = 380;
 const HEIGHT = 660;
 // 隐藏后缩成的小图标大小
 const ICON = 56;
-const SHORTCUT = 'Control+Alt+W';
+const IS_MAC = process.platform === 'darwin';
+// 切换隐藏 / 显示的全局快捷键：Windows 是 Ctrl+Alt+W，Mac 上是 Control+Option+W
+const SHORTCUT = IS_MAC ? 'Control+Option+W' : 'Control+Alt+W';
 const STATE_FILE = path.join(__dirname, '..', 'data', 'widget.json');
 
 let win;
@@ -194,6 +196,15 @@ if (!app.requestSingleInstanceLock()) {
   app.on('second-instance', () => win?.show());
   loadState();
   app.whenReady().then(() => {
+    // Mac 顶部菜单栏只留应用菜单和「编辑」（没有「编辑」菜单时设置框里不能用 Command+C / V 复制粘贴）；Windows 不变
+    if (IS_MAC) {
+      Menu.setApplicationMenu(
+        Menu.buildFromTemplate([
+          { label: BRAND.name, submenu: [{ role: 'hide', label: `隐藏 ${BRAND.name}` }, { role: 'hideOthers', label: '隐藏其他' }, { type: 'separator' }, { role: 'quit', label: `退出 ${BRAND.name}` }] },
+          { label: '编辑', submenu: [{ role: 'undo', label: '撤销' }, { role: 'redo', label: '重做' }, { type: 'separator' }, { role: 'cut', label: '剪切' }, { role: 'copy', label: '复制' }, { role: 'paste', label: '粘贴' }, { role: 'selectAll', label: '全选' }] },
+        ]),
+      );
+    }
     createWindow();
     // 全局快捷键切换隐藏 / 显示；被别的软件占用时注册失败，不弹窗
     try {
@@ -204,6 +215,9 @@ if (!app.requestSingleInstanceLock()) {
     // 电脑睡眠唤醒、解锁后让页面补一次同步
     for (const event of ['resume', 'unlock-screen']) powerMonitor.on(event, () => win?.webContents.send('desk:resume'));
   });
+  // 关掉窗口就退出：Mac 默认关窗口不退出，这里两边一样，免得终端窗口和后台服务器一直留着
   app.on('window-all-closed', () => app.quit());
+  // Mac 上点 Dock 图标时把窗口调出来
+  app.on('activate', () => win?.show());
   app.on('will-quit', () => globalShortcut.unregisterAll());
 }

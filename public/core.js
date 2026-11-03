@@ -1,6 +1,12 @@
 // 网页看板（app.js）和桌面小工具（widget.js）共用的逻辑：
 // 整理数据、计算个人基线、中文解读、手写 SVG 图表。
 
+// 按系统显示的说法：Mac 上快捷键是 Control+Option+W，双击的是 .command，启动时会开一个终端窗口
+const IS_MAC = typeof navigator !== 'undefined' && /Mac/i.test(navigator.platform || navigator.userAgent || '');
+const PLATFORM_TEXT = IS_MAC
+  ? { shortcut: 'Control+Option+W', launcher: '启动桌面小工具.command', serverHint: '启动时打开的终端窗口不要关，关了的话重新双击「启动桌面小工具.command」' }
+  : { shortcut: 'Ctrl+Alt+W', launcher: '启动桌面小工具.bat', serverHint: '请重新双击「启动桌面小工具.bat」；用 npm start 打开网页版的话，那个黑色窗口不要关' };
+
 const HOUR = 3600 * 1000;
 const DAY = 24 * HOUR;
 const COLORS = {
@@ -714,7 +720,7 @@ async function askAiAdvice(advice, days, rerender) {
     if (!res.ok) throw new Error(result.error || `服务器返回 ${res.status}`);
     aiAdvice.text = result.text;
   } catch (err) {
-    aiAdvice.error = err.message === 'Failed to fetch' ? '连不上本机服务器' : err.message;
+    aiAdvice.error = err.message === 'Failed to fetch' ? `连不上本机服务器，${PLATFORM_TEXT.serverHint}` : err.message;
   } finally {
     aiAdvice.loading = false;
     rerender();

@@ -103,7 +103,7 @@ const Setup = (() => {
         msg.textContent = '已保存。';
         onSaved?.(result);
       } catch (err) {
-        msg.textContent = err.message === 'Failed to fetch' ? '连不上本机服务器' : err.message;
+        msg.textContent = err.message === 'Failed to fetch' ? `连不上本机服务器，${PLATFORM_TEXT.serverHint}` : err.message;
       } finally {
         save.disabled = false;
       }
