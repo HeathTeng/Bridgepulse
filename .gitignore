@@ -1,0 +1,18 @@
+# 密钥和个人健康数据，绝不上传
+.env
+data/
+node_modules/
+# 手机 App 截图里有真实健康数据和账号名字
+screenshots/
+
+# 内部资料，不上传（public/sports-zh.js 才是在用的那份）
+CLAUDE.md
+docs/剩余全部指令.md
+docs/上架指令-GitHub和官网.md
+docs/进度.md
+docs/复刻对照表.md
+docs/详情页笔记.md
+docs/项目思路梳理.md
+docs/新手引导设计准则.md
+docs/新手引导文案.md
+docs/sports-zh.js

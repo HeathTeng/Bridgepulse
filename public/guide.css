@@ -1,0 +1,96 @@
+/* 新手引导：用小工具自己的灰色配色（不用准则里的绿色磨砂），颜色全部取页面自己的变量：
+   --panel 卡片底（不透明）、--text 正文、--muted 次要文字、--line 分隔线、--chip 按钮底、--dim 四周压暗。
+   小工具的变量在 widget.css，网页大看板的在 style.css。 */
+
+.g-root { position: fixed; inset: 0; z-index: 1000; color: var(--text); font-size: 13px; line-height: 1.55; }
+.g-center { display: flex; align-items: center; justify-content: center; background: var(--dim); padding: 8px; }
+.g-card, .g-bubble { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45); }
+
+/* 所有卡片一样大：内容在卡片里滚动，按钮固定在底部；窗口窄（小工具 380 宽）时接近全屏 */
+.g-card { width: min(600px, 100%); max-height: min(470px, 100%); display: flex; flex-direction: column; padding: 18px 20px 14px; text-align: left; }
+.g-help { height: min(470px, 100%); }
+.g-welcome, .g-ask { text-align: center; align-items: center; justify-content: center; }
+.g-mark { color: var(--text); margin-bottom: 6px; }
+.g-big { font-size: 19px; font-weight: 600; margin: 4px 0 8px; line-height: 1.4; }
+.g-big-sm { font-size: 15px; margin: 6px 0 12px; }
+.g-brand { color: var(--text); font-weight: 700; text-decoration: none; }
+.g-card h3 { margin: 0 0 8px; font-size: 16px; color: var(--text); }
+.g-card p { margin: 0 0 8px; }
+.g-card ul { margin: 0 0 8px; padding-left: 18px; }
+.g-card li { margin: 4px 0; }
+.g-card b { color: var(--text); }
+.g-card table { width: 100%; border-collapse: collapse; margin: 4px 0 10px; font-size: 12.5px; }
+.g-card th, .g-card td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.g-card th { color: var(--muted); font-weight: 600; }
+.g-card th:first-child, .g-card td:first-child { white-space: nowrap; }
+.g-card a { color: var(--text); }
+.g-sub { color: var(--muted); }
+.g-foot { color: var(--muted); font-size: 11.5px; margin-top: 12px !important; }
+.g-body { flex: 1; overflow-y: auto; min-height: 0; padding-right: 4px; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+.g-body::-webkit-scrollbar { width: 6px; }
+.g-body::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+.g-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.g-count { color: var(--muted); font-size: 11.5px; }
+.g-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+.g-welcome .g-row, .g-ask .g-row { justify-content: center; }
+.g-foot-row { flex: none; padding-top: 10px; border-top: 1px solid var(--line); }
+
+/* 按钮和小工具其他按钮一样：浅灰底、细边、圆角 */
+.g-root button { font: inherit; font-size: 13px; cursor: pointer; border-radius: 8px; color: var(--text); }
+.g-primary { border: 1px solid var(--line); background: var(--chip, var(--line)); font-weight: 600; padding: 5px 16px; }
+.g-primary:hover { border-color: var(--muted); }
+.g-ghost { border: 1px solid var(--line); background: transparent; padding: 5px 12px; }
+.g-ghost:hover:not(:disabled) { border-color: var(--muted); }
+.g-ghost:disabled { opacity: 0.4; cursor: default; }
+.g-root .g-link { border: 0; background: transparent; color: var(--muted); padding: 4px 2px; text-decoration: underline; font-size: 12px; }
+.g-root .g-x { border: 0; background: transparent; color: var(--muted); font-size: 18px; line-height: 1; padding: 0 4px; }
+.g-replay { display: block; margin: 4px 0 8px; }
+.g-root button:focus-visible, .g-root summary:focus-visible, .g-root input:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+
+/* 常见问题 */
+.g-search { width: 100%; box-sizing: border-box; margin: 2px 0 8px; padding: 6px 9px; border-radius: 8px; border: 1px solid var(--line); background: transparent; color: var(--text); font: inherit; }
+.g-search::placeholder { color: var(--muted); }
+.g-group { margin-bottom: 6px; }
+.g-group > summary { font-weight: 600; cursor: pointer; padding: 3px 0; }
+.g-q { margin: 2px 0 2px 10px; }
+.g-q > summary { cursor: pointer; padding: 2px 0; }
+.g-a { color: var(--muted); padding: 2px 0 4px 14px; }
+.g-a p { margin: 0 0 4px; }
+
+/* 框选引导：透明挡板挡住页面，高亮框用中性的浅灰白描边，四周压暗 */
+.g-block { position: fixed; inset: 0; }
+.g-spot { position: fixed; border: 2px solid var(--text); border-radius: 10px; box-shadow: 0 0 0 200vmax var(--dim); pointer-events: none; }
+.g-bubble { position: fixed; max-width: 360px; padding: 12px 14px 10px; }
+.g-bubble p { margin: 0 0 4px; }
+.g-bubble .g-row { margin-top: 8px; }
+@media (prefers-reduced-motion: no-preference) {
+  .g-spot { transition: left 0.2s, top 0.2s, width 0.2s, height 0.2s; }
+}
+
+/* 窗口窄（桌面小工具 380 宽）时卡片接近全屏 */
+@media (max-width: 520px) {
+  .g-card { width: 100%; }
+  .g-help { height: 100%; max-height: 100%; }
+}
+
+/* ⚙ 设置填写框：内嵌在页面里（没配置时）或用上面的弹出框打开，颜色同样只用页面变量 */
+.s-form { text-align: left; color: var(--text); font-size: 13px; }
+.s-form h3 { margin: 0 0 8px; font-size: 16px; }
+.s-group { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px 10px; margin: 0 0 10px; min-width: 0; }
+.s-group legend { padding: 0 4px; color: var(--muted); font-size: 12px; }
+.s-group summary { cursor: pointer; color: var(--muted); font-size: 12px; }
+.s-tip { color: var(--muted); font-size: 12px; margin: 2px 0 8px; line-height: 1.5; word-break: break-all; }
+.s-tip code { color: var(--text); }
+.s-field { display: block; margin: 6px 0; }
+.s-field span { display: block; font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+.s-field input { width: 100%; box-sizing: border-box; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line); background: transparent; color: var(--text); font: inherit; user-select: text; }
+.s-field input::placeholder { color: var(--muted); }
+.s-field input:focus-visible { outline: 2px solid var(--text); outline-offset: 1px; }
+.s-form button { font: inherit; font-size: 12px; cursor: pointer; border-radius: 8px; color: var(--text); border: 1px solid var(--line); background: var(--chip, var(--line)); padding: 2px 8px; }
+.s-form .s-save { font-size: 13px; font-weight: 600; padding: 5px 16px; }
+.s-form button:hover { border-color: var(--muted); }
+.s-foot { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.s-foot small { color: var(--muted); font-size: 11.5px; }
+.s-msg { min-height: 1.4em; margin: 6px 0 0; font-size: 12px; color: var(--muted); }
+.s-card { position: relative; }
+.s-x { position: absolute; top: 8px; right: 10px; border: 0; background: transparent; color: var(--muted); font-size: 18px; line-height: 1; cursor: pointer; }

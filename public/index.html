@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/guide.css">
+  <title>Bridgepulse</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="top">
+    <div>
+      <h1 id="brand-name"></h1>
+      <p class="muted" id="brand-tagline"></p>
+      <p class="muted" id="updated">正在读取数据…</p>
+    </div>
+    <div class="actions">
+      <div class="range" id="range">
+        <button data-days="7">7 天</button>
+        <button data-days="30" class="on">30 天</button>
+        <button data-days="90">90 天</button>
+      </div>
+      <button id="help" title="帮助">💡 帮助</button>
+      <button id="setup" title="设置">⚙ 设置</button>
+      <button id="refresh">同步最新数据</button>
+      <a id="auth" class="btn" href="/login">连接 WHOOP</a>
+    </div>
+  </header>
+
+  <div id="notice" class="notice" hidden></div>
+
+  <main id="main" hidden>
+    <section class="card adv" id="advice-box"></section>
+
+    <section class="card today">
+      <div class="ring-wrap" id="ring"></div>
+      <div>
+        <h2 id="today-title">今日解读</h2>
+        <p id="today-text" class="lead"></p>
+        <ul id="today-tips" class="tips"></ul>
+        <button id="copy-ai" class="ghost">复制今日数据，粘贴给 AI 提问</button>
+        <span id="copied" class="muted" hidden>已复制</span>
+      </div>
+    </section>
+
+    <section>
+      <h2>核心指标 <small class="muted">和你自己近期平均比</small></h2>
+      <div class="grid" id="metrics"></div>
+    </section>
+
+    <section class="card">
+      <h2>恢复度趋势 <small class="muted">Recovery，绿 67–100 / 黄 34–66 / 红 0–33</small></h2>
+      <div id="chart-recovery" class="chart"></div>
+    </section>
+
+    <div class="two">
+      <section class="card">
+        <h2>心率变异性 HRV <small class="muted">越高通常代表恢复越好</small></h2>
+        <div id="chart-hrv" class="chart"></div>
+      </section>
+      <section class="card">
+        <h2>静息心率 <small class="muted">越低通常代表恢复越好</small></h2>
+        <div id="chart-rhr" class="chart"></div>
+      </section>
+    </div>
+
+    <div class="two">
+      <section class="card">
+        <h2>每日负荷 <small class="muted">Day Strain，0–21</small></h2>
+        <div id="chart-strain" class="chart"></div>
+      </section>
+      <section class="card">
+        <h2>每晚睡眠 <small class="muted">小时，按睡眠阶段</small></h2>
+        <div id="chart-sleep" class="chart"></div>
+        <div class="legend" id="sleep-legend"></div>
+      </section>
+    </div>
+
+    <section class="card">
+      <h2>最近一晚睡眠</h2>
+      <div id="last-sleep"></div>
+    </section>
+
+    <section class="card">
+      <h2>运动记录</h2>
+      <div class="table-wrap"><table id="workouts"></table></div>
+    </section>
+
+    <section class="card">
+      <h2>WHOOP App 英中对照表 <small class="muted">看 App 时对照用</small></h2>
+      <div class="table-wrap"><table id="glossary"></table></div>
+    </section>
+
+    <p class="muted foot">本看板只做数据解读和一般性参考，不构成医疗建议。身体不适请咨询医生。
+      <button id="help-foot" class="ghost">💡 帮助</button> <button id="faq-foot" class="ghost">💡 常见问题</button></p>
+  </main>
+
+  <script src="/brand.js"></script>
+  <script src="/sports-zh.js"></script>
+  <script src="/core.js"></script>
+  <script src="/guide.js"></script>
+  <script src="/guide-ui.js"></script>
+  <script src="/setup.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>
