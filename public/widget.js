@@ -15,6 +15,17 @@ const RING_COLORS = { strain: '#3fa9f5', sleep: '#8fb8de' };
 document.title = BRAND.name;
 $('brand-name').textContent = BRAND.short;
 $('brand-name').title = `${BRAND.name} · ${BRAND.tagline}`;
+$('brand-en').textContent = BRAND.en;
+
+// 顶栏变窄或同步时间变长、放不下时，先藏英文名那行
+function fitBrand() {
+  const bar = document.querySelector('.bar');
+  const sync = $('sync-time');
+  bar.classList.remove('tight');
+  if (sync.scrollWidth > sync.clientWidth + 1) bar.classList.add('tight');
+}
+new ResizeObserver(fitBrand).observe(document.querySelector('.bar'));
+new MutationObserver(fitBrand).observe($('sync-time'), { childList: true, characterData: true, subtree: true });
 
 let state = { data: null, days: [], tab: new URLSearchParams(location.search).get('tab') || 'today', demo: false, ai: null, status: null, seen: null, adviceOpen: false, loading: false, lastTry: 0, syncError: null, dayIdx: null, back: null, sleepNap: null, workoutId: null, trend: null, redraw: null };
 

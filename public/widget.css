@@ -53,8 +53,14 @@ html, body {
   padding: 8px 10px 4px 14px;
   -webkit-app-region: drag;
 }
-.brand b { letter-spacing: 0.12em; font-size: 12px; margin-right: 8px; }
-.brand span { font-size: 11px; }
+.brand { display: flex; align-items: center; }
+/* 简称和英文名上下两行：合计约 25px，不超过按钮高度，顶栏不会变高 */
+.brand-mark { display: flex; flex-direction: column; align-items: flex-start; flex: none; margin-right: 8px; line-height: 1.2; }
+.brand b { letter-spacing: 0.12em; font-size: 12px; }
+.brand-mark i { font-style: normal; font-size: 10px; line-height: 1.05; color: var(--muted); }
+/* 放不下时先藏英文那行，同步时间不被挤掉 */
+.bar.tight .brand-mark i { display: none; }
+#sync-time { font-size: 11px; }
 .ctrl { display: flex; gap: 2px; -webkit-app-region: no-drag; }
 .ctrl button {
   width: 26px;
