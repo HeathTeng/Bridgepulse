@@ -1,0 +1,63 @@
+/* 恢复日历（calendar.js）：小工具和网页大看板共用，颜色取页面自己的变量（--panel、--text、--muted、--line、--dim）。
+   每格至少 28px：小工具 260 宽时一格约 33px。 */
+
+.cal-root { position: fixed; inset: 0; z-index: 900; color: var(--text); font-size: 13px; line-height: 1.4; }
+/* 下面压暗；小工具窗口是圆角，压暗也跟着圆角，不然四个角会露出黑块 */
+.cal-dim { position: absolute; inset: 0; background: var(--dim); border-radius: var(--cal-radius, 0); }
+.cal-panel {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(340px, calc(100% - 16px));
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  padding: 8px 10px 8px;
+  outline: none;
+}
+/* 先把页面自己的 button 样式（网页大看板有内边距、禁用时半透明）清掉，两边看起来一样 */
+.cal-panel button, .cal-panel button:disabled { display: inline-grid; place-items: center; gap: 0; grid-template-columns: none; margin: 0; padding: 0; min-width: 0; opacity: 1; box-shadow: none; text-transform: none; }
+.cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.cal-title { font-size: 14px; letter-spacing: 0.04em; }
+.cal-step { width: 32px; height: 28px; border: 0; border-radius: 8px; background: transparent; color: var(--text); font-size: 18px; line-height: 1; cursor: pointer; }
+.cal-step:hover:not(:disabled) { background: var(--line); }
+.cal-step:disabled { color: var(--line); cursor: default; }
+.cal-week, .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(28px, 1fr)); justify-items: center; }
+.cal-week span { font-size: 11px; color: var(--muted); padding: 2px 0; }
+.cal-grid { row-gap: 2px; }
+.cal-day {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.cal-day:hover:not(:disabled) { background: var(--line); }
+.cal-day:disabled { color: #56636b; font-weight: 400; cursor: default; }
+.cal-day.plain { font-weight: 400; }
+/* 正在看的那天加圆圈 */
+.cal-panel .cal-day.on { box-shadow: inset 0 0 0 1.5px var(--text); }
+/* 键盘焦点用底色和虚线，和「正在看的那天」的实线圆圈区分开 */
+.cal-day:focus-visible { outline: 1.5px dashed var(--muted); outline-offset: 2px; background: var(--line); }
+.cal-step:focus-visible { outline: 1.5px dashed var(--muted); outline-offset: 1px; }
+.cal-legend { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; font-size: 11px; color: var(--muted); }
+.cal-legend span { display: inline-flex; align-items: center; gap: 4px; }
+.cal-legend i { width: 7px; height: 7px; border-radius: 50%; }
+
+/* 打开顶部日期的按钮（小工具「‹ 今天 ›」中间、网页「今日解读」后面） */
+.day-pick { cursor: pointer; font: inherit; color: inherit; border: 0; }
+.day-pick:focus-visible { outline: 2px solid var(--text); outline-offset: 1px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .cal-dim { animation: cal-fade 0.16s ease-out; }
+  .cal-panel { animation: cal-drop 0.18s ease-out; }
+  @keyframes cal-fade { from { opacity: 0; } }
+  @keyframes cal-drop { from { opacity: 0; transform: translate(-50%, -10px); } }
+}

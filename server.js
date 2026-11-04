@@ -8,8 +8,10 @@ const whoop = require('./lib/whoop');
 const demo = require('./lib/demo');
 const BRAND = require('./public/brand');
 
-// .env 的位置：平时就是项目文件夹里的 .env；BRIDGEPULSE_ENV_FILE 只给测试用，指向临时的假文件
-const ENV_FILE = process.env.BRIDGEPULSE_ENV_FILE || path.join(__dirname, '.env');
+const paths = require('./lib/paths');
+
+// .env 的位置：源码运行是项目文件夹里的 .env，打包版在用户数据文件夹里（见 lib/paths.js）
+const ENV_FILE = paths.ENV_FILE;
 const ENV_EXAMPLE = path.join(__dirname, '.env.example');
 loadEnv(ENV_FILE);
 
@@ -106,6 +108,8 @@ function writeEnv(values) {
     if (line.test(text)) text = text.replace(line, () => `${key}=${value}`);
     else text = `${text}${text && !text.endsWith('\n') ? eol : ''}${key}=${value}${eol}`;
   }
+  // 打包版第一次保存时用户数据文件夹里可能还没有这个目录
+  fs.mkdirSync(path.dirname(ENV_FILE), { recursive: true });
   const tmp = `${ENV_FILE}.${process.pid}.tmp`;
   fs.writeFileSync(tmp, text);
   fs.renameSync(tmp, ENV_FILE);
@@ -148,7 +152,7 @@ async function handleSetup(req, res) {
   try {
     writeEnv(values);
   } catch {
-    return sendJson(res, 500, { error: '写不进 .env 文件，请检查文件夹是不是只读' });
+    return sendJson(res, 500, { error: `写不进设置文件 ${ENV_FILE}，请检查这个文件夹是不是只读` });
   }
   applyEnv();
   return sendJson(res, 200, { ok: true, saved: Object.keys(values), setup: setupStatus() });
@@ -324,6 +328,9 @@ async function handle(req, res) {
       setup: setupStatus(),
       // 回调地址不是密钥，设置框里要显示给用户复制
       callback: config.redirectUri,
+      // 设置和数据存在哪（只在本机页面上显示，方便用户自己找到）
+      envFile: ENV_FILE,
+      dataDir: whoop.DATA_DIR,
     });
   }
 
@@ -395,6 +402,7 @@ function start({ demo = DEMO } = {}) {
     server.once('error', reject);
     server.listen(PORT, '127.0.0.1', () => {
       console.log(`${BRAND.name} 已启动：http://localhost:${PORT}${DEMO ? '（示例数据模式）' : ''}`);
+      console.log(`设置文件：${ENV_FILE}；数据文件夹：${whoop.DATA_DIR}`);
       if (!DEMO && !configured()) {
         console.log('提示：还没有填写 WHOOP 的 Client ID 和 Secret，打开页面后在「⚙ 设置」里粘贴就行。');
       }

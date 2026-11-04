@@ -4,8 +4,8 @@
 // 按系统显示的说法：Mac 上快捷键是 Control+Option+W，双击的是 .command，启动时会开一个终端窗口
 const IS_MAC = typeof navigator !== 'undefined' && /Mac/i.test(navigator.platform || navigator.userAgent || '');
 const PLATFORM_TEXT = IS_MAC
-  ? { shortcut: 'Control+Option+W', launcher: '启动桌面小工具.command', serverHint: '启动时打开的终端窗口不要关，关了的话重新双击「启动桌面小工具.command」' }
-  : { shortcut: 'Ctrl+Alt+W', launcher: '启动桌面小工具.bat', serverHint: '请重新双击「启动桌面小工具.bat」；用 npm start 打开网页版的话，那个黑色窗口不要关' };
+  ? { shortcut: 'Control+Option+W', launcher: '启动桌面小工具.command', serverHint: '请重新打开 Bridgepulse；用源码运行的话，启动时打开的终端窗口不要关' }
+  : { shortcut: 'Ctrl+Alt+W', launcher: '启动桌面小工具.bat', serverHint: '请重新打开 Bridgepulse（下载版双击 Bridgepulse.exe，源码运行双击「启动桌面小工具.bat」）；用 npm start 打开网页版的话，那个黑色窗口不要关' };
 
 const HOUR = 3600 * 1000;
 const DAY = 24 * HOUR;
@@ -159,6 +159,27 @@ function dayLabel(iso, offset) {
   return `${d.getUTCMonth() + 1}/${d.getUTCDate()}`;
 }
 
+// 这一天在日历上是哪一天（"YYYY-MM-DD"）：按主睡眠醒来的日期，和 App 一样恢复度记在醒来那天。
+// 还没有睡眠记录时看周期开始时间：WHOOP 的一天从入睡开始，下午以后开始的算到第二天。
+function dayDateKey(cycle, sleep) {
+  let d;
+  if (sleep?.end) d = localDate(sleep.end, sleep.timezone_offset ?? cycle.timezone_offset);
+  else {
+    d = localDate(cycle.start, cycle.timezone_offset);
+    if (d.getUTCHours() >= 12) d = new Date(d.getTime() + DAY);
+  }
+  return d.toISOString().slice(0, 10);
+}
+
+// "YYYY-MM-DD" → 11/4、周二
+function keyLabel(key) {
+  const [, m, d] = key.split('-').map(Number);
+  return `${m}/${d}`;
+}
+function keyWeekday(key) {
+  return WEEKDAYS[new Date(`${key}T00:00:00Z`).getUTCDay()];
+}
+
 function clock(minutesOfDay) {
   const m = ((Math.round(minutesOfDay) % 1440) + 1440) % 1440;
   return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
@@ -245,9 +266,12 @@ function buildDays(data) {
       const to = c.end ? Date.parse(c.end) : Date.now();
       const workouts = (data.workouts || []).filter((w) => w.score_state === 'SCORED' && Date.parse(w.start) >= from && Date.parse(w.start) < to);
       const zones = zoneMinutes(workouts);
+      const date = dayDateKey(c, sleep);
       return {
         id: c.id,
-        label: dayLabel(c.start, c.timezone_offset),
+        date,
+        label: keyLabel(date),
+        wd: keyWeekday(date),
         start: c.start,
         end: c.end,
         tz: c.timezone_offset,
@@ -301,6 +325,43 @@ function pickDay(days, idx) {
 
 const WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 
+/* ---------- 恢复日历（数据部分；界面在 calendar.js） ---------- */
+
+// 本机的今天，"YYYY-MM-DD"
+function todayKey(now = new Date()) {
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+// 日期 → 第几天（同一天有两条时用后面那条）
+function calendarIndex(days) {
+  const map = new Map();
+  days.forEach((d, i) => map.set(d.date, i));
+  return map;
+}
+
+// 能翻到的月份 "YYYY-MM"：有数据的月份，加上本月，不超过本月，从早到晚
+function calendarMonths(days, now = new Date()) {
+  const cur = todayKey(now).slice(0, 7);
+  const set = new Set(days.map((d) => d.date.slice(0, 7)).filter((m) => m <= cur));
+  set.add(cur);
+  return [...set].sort();
+}
+
+// 一个月的格子：前面补空格，让 1 号落在对应的星期下（星期日开头）
+function monthCells(month) {
+  const [y, m] = month.split('-').map(Number);
+  const first = new Date(Date.UTC(y, m - 1, 1)).getUTCDay();
+  const total = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  const cells = Array(first).fill(null);
+  for (let d = 1; d <= total; d++) cells.push(`${month}-${String(d).padStart(2, '0')}`);
+  return cells;
+}
+
+// 前后挪 n 天的日期
+function shiftKey(key, n) {
+  return new Date(Date.parse(`${key}T00:00:00Z`) + n * DAY).toISOString().slice(0, 10);
+}
+
 function weekday(iso, offset) {
   return WEEKDAYS[localDate(iso, offset).getUTCDay()];
 }
@@ -308,7 +369,7 @@ function weekday(iso, offset) {
 function dayTitle(days, idx) {
   if (idx === days.length - 1) return '今天';
   if (idx === days.length - 2) return '昨天';
-  return `${days[idx].label} ${weekday(days[idx].start, days[idx].tz)}`;
+  return `${days[idx].label} ${days[idx].wd}`;
 }
 
 // 分钟数 → "3:43"，和 App 的写法一致
@@ -864,7 +925,7 @@ function trendChart(el, days, selected, spec) {
   bottoms.forEach((row, k) => writeRow(row, rowY(k, below)));
   days.forEach((d, i) => {
     const color = i === selected ? '#eef2f4' : '#9aa7ae';
-    out += txt(x(i), rowY(bottoms.length, below), color, weekday(d.start, d.tz), 'middle', i === selected);
+    out += txt(x(i), rowY(bottoms.length, below), color, d.wd, 'middle', i === selected);
     out += txt(x(i), rowY(bottoms.length + 1, below), color, d.label, 'middle', i === selected);
   });
   el.innerHTML = `<svg viewBox="0 0 ${w} ${h}">${out}</svg>`;
@@ -1327,7 +1388,7 @@ function periodChart(el, view) {
   pts.forEach((p, i) => {
     const d = p.day;
     if (view.period === 'W') {
-      out += txt(x(i), base + lh - 4, '#9aa7ae', weekday(d.start, d.tz));
+      out += txt(x(i), base + lh - 4, '#9aa7ae', d.wd);
       out += txt(x(i), base + 2 * lh - 4, '#9aa7ae', d.label);
     } else if (view.period === 'M') {
       if (view.weekly) out += txt(x(i), base + lh - 4, '#9aa7ae', `${p.from.label}起`);

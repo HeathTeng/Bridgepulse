@@ -74,7 +74,9 @@ const Setup = (() => {
     const save = el('button', 's-save', '保存');
     save.type = 'submit';
     const foot = el('div', 's-foot');
-    foot.append(save, el('small', null, '只保存在你电脑上的 .env 文件里，不会上传'));
+    const where = el('small', null, '只保存在你电脑上的 ');
+    where.append(el('code', null, status?.envFile || '.env'), ' 文件里，不会上传');
+    foot.append(save, where);
     box.append(whoop, ai, foot, msg);
 
     box.addEventListener('submit', async (e) => {
@@ -92,7 +94,7 @@ const Setup = (() => {
         const result = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(result.error || `保存失败（${res.status}）`);
         if (result.demo) {
-          msg.textContent = '示例模式不保存。关掉示例预览，双击「启动桌面小工具」再填。';
+          msg.textContent = '示例模式不保存。关掉示例预览，正常打开 Bridgepulse 再填。';
           return;
         }
         // 保存成功：清空输入框，已填的显示「已填写」

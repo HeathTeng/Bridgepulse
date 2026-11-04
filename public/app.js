@@ -8,6 +8,8 @@ let aiStatus = null;
 let lastStatus = null;
 // 今日建议默认收起；展开状态由服务器记在 data/widget.json 的 web 里（和小工具分开）
 let adviceOpen = false;
+// 恢复日历里选的那天（"YYYY-MM-DD"）；null 表示看最新的一天
+let pickedDate = null;
 
 const $ = (id) => document.getElementById(id);
 
@@ -27,7 +29,8 @@ function metricCard(name, en, value, unit, cmp, desc) {
 
 function render(data) {
   currentData = data;
-  const days = buildDays(data).slice(-currentDays);
+  const allDays = buildDays(data);
+  const days = allDays.slice(-currentDays);
   if (!days.length) {
     showNotice('这段时间还没有数据。新设备戴上后需要先睡一晚，WHOOP 才会算出第一份恢复度和睡眠。');
     $('main').hidden = true;
@@ -38,14 +41,20 @@ function render(data) {
   // 今日建议用全部天数（规则要看前 30 天的基线），和上面的时间范围切换无关
   renderAdvice();
 
-  const { today, history } = pickToday(days);
-  const prevComplete = days.filter((d) => !d.ongoing).pop();
+  let { today, history } = pickToday(days);
+  let prevComplete = days.filter((d) => !d.ongoing).pop();
+  // 在恢复日历里选了别的日子：解读、圆环和指标都换成那一天（基线是那天之前的 30 天）
+  const pickedIdx = pickedDate == null ? null : calendarIndex(allDays).get(pickedDate);
+  if (pickedIdx != null) {
+    ({ today, history } = pickDay(allDays, pickedIdx));
+    prevComplete = allDays[pickedIdx - 1] || null;
+  } else pickedDate = null;
 
   // 今日解读
   const { text, tips } = interpret(today, history);
   const zone = recoveryZone(today.recovery);
   $('ring').innerHTML = ring({ value: today.recovery, max: 100, color: zone.color, big: today.recovery == null ? '—' : `${today.recovery}%`, small: `恢复度 · ${zone.name}` });
-  $('today-title').textContent = `今日解读（${today.label}）`;
+  renderTodayTitle(today, allDays);
   $('today-text').textContent = text;
   const need = sleepNeedHours(today.sleep);
   if (need) tips.push(`按 WHOOP 的算法，你的睡眠需求约 ${formatHours(need)}（含睡眠负债和负荷带来的额外需求）。`);
@@ -76,6 +85,43 @@ function render(data) {
   renderLastSleep(days.filter((d) => d.sleep).pop());
   const cutoff = Date.now() - currentDays * DAY;
   renderWorkouts(data.workouts.filter((w) => Date.parse(w.start) >= cutoff));
+}
+
+// 「今日解读（11/4）」：日期是按钮，点开恢复日历；看的不是最新一天时多一个「回到今天」
+function renderTodayTitle(today, allDays) {
+  const title = $('today-title');
+  title.textContent = pickedDate ? '这一天的解读（' : '今日解读（';
+  const pick = document.createElement('button');
+  pick.type = 'button';
+  pick.className = 'day-pick';
+  pick.title = '打开恢复日历';
+  pick.setAttribute('aria-haspopup', 'dialog');
+  pick.textContent = pickedDate ? `${today.label} ${today.wd}` : today.label;
+  pick.addEventListener('click', () => {
+    RecoveryCalendar.open({
+      days: allDays,
+      selected: allDays.indexOf(today),
+      top: pick.getBoundingClientRect().bottom + 6,
+      opener: pick,
+      onPick: (idx) => {
+        pickedDate = idx === allDays.length - 1 ? null : allDays[idx].date;
+        render(currentData);
+        $('today-title').querySelector('.day-pick')?.focus();
+      },
+    });
+  });
+  title.append(pick, '）');
+  if (pickedDate) {
+    const back = document.createElement('button');
+    back.type = 'button';
+    back.className = 'back-today';
+    back.textContent = '回到今天';
+    back.addEventListener('click', () => {
+      pickedDate = null;
+      render(currentData);
+    });
+    title.append(back);
+  }
 }
 
 function renderAdvice() {

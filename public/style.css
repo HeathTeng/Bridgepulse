@@ -129,3 +129,9 @@ th { color: var(--muted); font-weight: normal; }
 .adv-note { margin: 10px 0 0; font-size: 12px; color: var(--muted); }
 
 #updated.stale { color: #ffa53b; }
+
+/* 「今日解读（11/4）」里的日期：点开恢复日历 */
+#today-title .day-pick { background: var(--line); border-radius: 8px; padding: 0 8px; margin: 0 2px; font-weight: 600; }
+#today-title .day-pick:hover { background: #3a464d; }
+#today-title .back-today { margin-left: 10px; border: 1px solid var(--line); background: transparent; color: var(--muted); border-radius: 8px; padding: 1px 8px; font: inherit; font-size: 12px; cursor: pointer; vertical-align: 2px; }
+#today-title .back-today:hover { color: var(--text); }

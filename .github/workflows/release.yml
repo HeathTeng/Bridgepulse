@@ -1,0 +1,132 @@
+# 推送 v* 标签时自动打包，把三个压缩包传到这个标签的 Release。
+# 不用 electron-builder，也不加任何依赖：直接拿 Electron 官方程序，把项目文件放进 resources/app。
+# 三个文件名固定不变，官网的下载按钮靠它们：
+#   Bridgepulse-Windows.zip、Bridgepulse-Mac-AppleChip.zip、Bridgepulse-Mac-Intel.zip
+# 只用 GitHub 默认给的 GITHUB_TOKEN，不用任何别的密钥。
+# 图标是 assets/ 里的 W 圆标（源文件 icon.svg，用 scripts/make-icons.js、make-ico.js 生成）。
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  TAG: ${{ github.ref_name }}
+
+jobs:
+  # 先确保 Release 存在（通常已经手动建好并写了说明），后面两个打包任务只往里传文件
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 确保 Release 存在
+        run: gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 || gh release create "$TAG" -R "$GITHUB_REPOSITORY" --verify-tag --title "Bridgepulse 脉桥 $TAG" --notes "下载：Windows 用 Bridgepulse-Windows.zip；Mac 苹果芯片用 Bridgepulse-Mac-AppleChip.zip，Intel 用 Bridgepulse-Mac-Intel.zip。"
+
+  windows:
+    needs: release
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: 组装 Bridgepulse 文件夹
+        run: |
+          set -e
+          mkdir -p out
+          cp -R node_modules/electron/dist out/Bridgepulse
+          mv out/Bridgepulse/electron.exe out/Bridgepulse/Bridgepulse.exe
+          # 有 resources/app 时 Electron 就不加载自带的默认页面，删掉更干净
+          rm -f out/Bridgepulse/resources/default_app.asar
+          APP=out/Bridgepulse/resources/app
+          mkdir -p "$APP/docs"
+          cp -R package.json electron public lib server.js .env.example LICENSE "$APP/"
+          cp docs/FAQ.md docs/指标说明-中文.md "$APP/docs/"
+          mkdir -p "$APP/assets" && cp assets/icon.png "$APP/assets/"
+          ls -R "$APP" | head -80
+      - name: 换 exe 图标和文件说明（rcedit 是 Electron 官方的小工具，MIT；只在这里临时下载，不进 package.json）
+        run: |
+          set -e
+          VER="${TAG#v}"
+          RC="$RUNNER_TEMP/rcedit"
+          mkdir -p "$RC"
+          # npm pack 只下载压缩包，不安装、不跑任何安装脚本；用里面自带的 rcedit-x64.exe
+          (cd "$RC" && npm pack rcedit@4.0.1 --silent && tar -xzf rcedit-4.0.1.tgz)
+          "$RC/package/bin/rcedit-x64.exe" out/Bridgepulse/Bridgepulse.exe             --set-icon assets/icon.ico             --set-file-version "$VER" --set-product-version "$VER"             --set-version-string FileDescription Bridgepulse             --set-version-string ProductName Bridgepulse             --set-version-string InternalName Bridgepulse             --set-version-string OriginalFilename Bridgepulse.exe             --set-version-string CompanyName Boundly
+          powershell -NoProfile -Command "(Get-Item out/Bridgepulse/Bridgepulse.exe).VersionInfo | Format-List FileDescription,ProductName,ProductVersion"
+      - name: 压缩
+        run: |
+          cd out
+          7z a -tzip -mcu=on Bridgepulse-Windows.zip Bridgepulse
+          ls -l Bridgepulse-Windows.zip
+      - name: 上传到 Release
+        run: gh release upload "$TAG" out/Bridgepulse-Windows.zip --clobber -R "$GITHUB_REPOSITORY"
+
+  mac:
+    needs: release
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 下载两种芯片的 Electron（和 package-lock.json 里同一版本），核对官方校验值
+        run: |
+          set -e
+          V=$(node -p "require('./package-lock.json').packages['node_modules/electron'].version")
+          echo "Electron $V"
+          mkdir -p dl && cd dl
+          BASE="https://github.com/electron/electron/releases/download/v$V"
+          curl -fsSL -o SHASUMS256.txt "$BASE/SHASUMS256.txt"
+          for A in arm64 x64; do
+            F="electron-v$V-darwin-$A.zip"
+            curl -fsSL -o "$F" "$BASE/$F"
+            grep " \*$F\$" SHASUMS256.txt | shasum -a 256 -c -
+          done
+      - name: 组装并压缩
+        run: |
+          set -e
+          V=$(node -p "require('./package-lock.json').packages['node_modules/electron'].version")
+          mkdir -p out
+          # 用系统自带的 sips 和 iconutil 做 .icns：16 / 32 用专门加粗的小图，其余从 1024 缩
+          IS=out/icon.iconset
+          mkdir -p "$IS"
+          cp assets/icon-16.png "$IS/icon_16x16.png"
+          cp assets/icon-32.png "$IS/icon_16x16@2x.png"
+          cp assets/icon-32.png "$IS/icon_32x32.png"
+          for P in 64:icon_32x32@2x 128:icon_128x128 256:icon_128x128@2x 256:icon_256x256 512:icon_256x256@2x 512:icon_512x512 1024:icon_512x512@2x; do
+            sips -z "${P%%:*}" "${P%%:*}" assets/icon-1024.png --out "$IS/${P#*:}.png" >/dev/null
+          done
+          iconutil -c icns "$IS" -o out/icon.icns
+          ls -l out/icon.icns
+          for A in arm64 x64; do
+            if [ "$A" = arm64 ]; then NAME=Bridgepulse-Mac-AppleChip.zip; else NAME=Bridgepulse-Mac-Intel.zip; fi
+            W="build-$A"
+            mkdir -p "$W"
+            # ditto 解压才能保留 .app 里的符号链接
+            ditto -x -k "dl/electron-v$V-darwin-$A.zip" "$W"
+            mv "$W/Electron.app" "$W/Bridgepulse.app"
+            R="$W/Bridgepulse.app/Contents/Resources"
+            rm -f "$R/default_app.asar"
+            mkdir -p "$R/app/docs"
+            cp -R package.json electron public lib server.js .env.example LICENSE "$R/app/"
+            cp docs/FAQ.md docs/指标说明-中文.md "$R/app/docs/"
+            mkdir -p "$R/app/assets" && cp assets/icon.png "$R/app/assets/"
+            # 图标：Info.plist 指向 electron.icns，直接用我们的 W 图标替换这个文件
+            cp out/icon.icns "$R/electron.icns"
+            # Dock 和「关于」里显示的名字（plutil -replace 没有这个键时会新建）
+            PL="$W/Bridgepulse.app/Contents/Info.plist"
+            plutil -replace CFBundleName -string Bridgepulse "$PL"
+            plutil -replace CFBundleDisplayName -string Bridgepulse "$PL"
+            # 改了包里的文件，原来的签名就不成立了；重新做一个本机签名（没有苹果开发者账号，所以第一次要右键 → 打开）
+            codesign --force --deep --sign - "$W/Bridgepulse.app"
+            codesign --verify --deep --strict "$W/Bridgepulse.app"
+            ditto -c -k --sequesterRsrc --keepParent "$W/Bridgepulse.app" "out/$NAME"
+            ls -l "out/$NAME"
+          done
+      - name: 上传到 Release
+        run: gh release upload "$TAG" out/Bridgepulse-Mac-AppleChip.zip out/Bridgepulse-Mac-Intel.zip --clobber -R "$GITHUB_REPOSITORY"

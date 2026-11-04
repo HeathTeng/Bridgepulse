@@ -7,6 +7,7 @@
   <title>Bridgepulse</title>
   <link rel="stylesheet" href="/widget.css">
   <link rel="stylesheet" href="/guide.css">
+  <link rel="stylesheet" href="/calendar.css">
 </head>
 <body>
   <div class="shell" id="shell">
@@ -35,7 +36,7 @@
 
     <nav class="daynav" id="daynav" hidden>
       <button id="day-prev" title="前一天">‹</button>
-      <span id="day-name">今天</span>
+      <button id="day-name" class="day-pick" type="button" title="打开恢复日历" aria-haspopup="dialog">今天</button>
       <button id="day-next" title="后一天">›</button>
     </nav>
     <section class="rings" id="rings"></section>
@@ -64,6 +65,7 @@
   <script src="/guide.js"></script>
   <script src="/guide-ui.js"></script>
   <script src="/setup.js"></script>
+  <script src="/calendar.js"></script>
   <script src="/widget.js"></script>
 </body>
 </html>

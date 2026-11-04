@@ -3,7 +3,17 @@
 const { app, BrowserWindow, ipcMain, shell, screen, powerMonitor, globalShortcut, Menu } = require('electron');
 const fs = require('fs');
 const path = require('path');
+
+// 打包版（解压就能用的压缩包）：程序文件夹里不能写，.env 和 data/ 放到系统给应用的用户数据文件夹
+// （Windows 是 %APPDATA%\Bridgepulse，Mac 是 ~/Library/Application Support/Bridgepulse）。
+// 必须在加载 server.js 之前设好；命令行带了 --user-data-dir（测试用）就用它。源码运行不受影响，还是项目文件夹。
+if (app.isPackaged) {
+  if (!app.commandLine.hasSwitch('user-data-dir')) app.setPath('userData', path.join(app.getPath('appData'), 'Bridgepulse'));
+  process.env.BRIDGEPULSE_HOME = app.getPath('userData');
+}
+
 const server = require('../server');
+const paths = require('../lib/paths');
 const BRAND = require('../public/brand');
 
 const DEMO = process.argv.includes('--demo');
@@ -14,7 +24,9 @@ const ICON = 56;
 const IS_MAC = process.platform === 'darwin';
 // 切换隐藏 / 显示的全局快捷键：Windows 是 Ctrl+Alt+W，Mac 上是 Control+Option+W
 const SHORTCUT = IS_MAC ? 'Control+Option+W' : 'Control+Alt+W';
-const STATE_FILE = path.join(__dirname, '..', 'data', 'widget.json');
+const STATE_FILE = path.join(paths.DATA_DIR, 'widget.json');
+// 窗口和任务栏图标（W 圆标，源文件 assets/icon.svg）；打包版的 exe / .app 图标在 GitHub Actions 里另外换
+const ICON_FILE = path.join(__dirname, '..', 'assets', 'icon.png');
 
 let win;
 let state = { x: null, y: null, pinned: true, collapsed: false, alpha: 0.8, opaque: false, guideSeen: false, tourSeen: false, hidden: false, iconX: null, iconY: null, adviceOpen: false };
@@ -102,6 +114,7 @@ async function createWindow() {
     alwaysOnTop: state.pinned,
     hasShadow: false,
     title: BRAND.name,
+    ...(fs.existsSync(ICON_FILE) ? { icon: ICON_FILE } : {}),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -205,6 +218,8 @@ if (!app.requestSingleInstanceLock()) {
         ]),
       );
     }
+    // Mac 源码运行时 Dock 里也显示 W（打包版用 .app 自己的图标）
+    if (IS_MAC && !app.isPackaged && fs.existsSync(ICON_FILE)) app.dock?.setIcon(ICON_FILE);
     createWindow();
     // 全局快捷键切换隐藏 / 显示；被别的软件占用时注册失败，不弹窗
     try {

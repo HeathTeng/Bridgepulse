@@ -108,6 +108,15 @@ $('opaque').addEventListener('change', (e) => {
 });
 $('day-prev').addEventListener('click', () => moveDay(-1));
 $('day-next').addEventListener('click', () => moveDay(1));
+// 点中间的日期打开恢复日历；窗口收起时先展开
+$('day-name').addEventListener('click', () => {
+  if (!state.days.length) return;
+  if ($('shell').classList.contains('folded')) {
+    $('shell').classList.remove('folded');
+    fitWindow();
+  }
+  RecoveryCalendar.open({ days: state.days, selected: selectedIdx(), onPick: goDay, top: $('daynav').getBoundingClientRect().top, opener: $('day-name') });
+});
 let resizeTimer;
 window.addEventListener('resize', () => {
   clearTimeout(resizeTimer);
@@ -425,8 +434,13 @@ function selectedIdx() {
 }
 
 function moveDay(step) {
+  goDay(selectedIdx() + step);
+}
+
+// 跳到第 idx 天：箭头翻天和恢复日历都走这里
+function goDay(target) {
   const last = state.days.length - 1;
-  const idx = Math.min(Math.max(selectedIdx() + step, 0), last);
+  const idx = Math.min(Math.max(target, 0), last);
   state.dayIdx = idx === last ? null : idx;
   // 换了一天，原来那段小睡已经不属于这一天，回到主睡眠
   state.sleepNap = null;

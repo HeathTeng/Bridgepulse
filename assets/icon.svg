@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56" width="1024" height="1024">
+  <!-- Bridgepulse 应用图标（唯一源文件）：和小工具「一键隐藏」的小圆标同一画法——深色圆底、细线 W；
+       外圈固定用恢复绿，不跟数据变。手画的，不是 WHOOP 的标志。
+       画到 48px 及以下时线条自动加粗，16–32px 也看得清。改完运行 scripts/make-icons.js 重新生成图片。 -->
+  <style>
+    .base { fill: #12171a; }
+    .ring { fill: none; stroke: #16ec06; stroke-width: 2.5; }
+    .w { fill: none; stroke: #eef2f4; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+    @media (max-width: 48px) {
+      .ring { stroke-width: 4; }
+      .w { stroke-width: 4.2; }
+    }
+    @media (max-width: 20px) {
+      .ring { stroke-width: 4.6; }
+      .w { stroke-width: 5; }
+    }
+  </style>
+  <circle cx="28" cy="28" r="26.5" class="base"/>
+  <circle cx="28" cy="28" r="24.5" class="ring"/>
+  <path d="M15.5 21l5.4 14.5 7.1-11.8 7.1 11.8 5.4-14.5" class="w"/>
+</svg>

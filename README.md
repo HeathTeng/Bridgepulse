@@ -8,8 +8,8 @@
 
 > **非官方声明**：这是个人做的非官方工具，和 WHOOP 公司无关，也没有得到 WHOOP 的认可或支持；WHOOP 是 WHOOP, Inc. 的商标。它只通过 WHOOP 官方开放接口**读取**你的数据，不会修改。WHOOP App 仍然是主力。本工具只做数据解读和一般性参考，不构成医疗建议。
 
-- 只在你自己的电脑上运行（只监听 `127.0.0.1`），数据只存在本机的 `data` 文件夹，不经过任何第三方服务器。只有你自己打开 AI 功能并点了「AI 帮我写」，才会把数字摘要发给你选的 AI（见「接入 AI（可选）」）。
-- **每个人都要自己去 [developer.whoop.com](https://developer.whoop.com) 申请 Client ID 和 Client Secret**，填进自己电脑上的 `.env`。本项目不提供、也不收集任何人的 ID 和密钥，步骤见下面「第一次使用」。
+- 只在你自己的电脑上运行（只监听 `127.0.0.1`），数据只存在本机（位置见「设置和数据存在哪里」），不经过任何第三方服务器。只有你自己打开 AI 功能并点了「AI 帮我写」，才会把数字摘要发给你选的 AI（见「接入 AI（可选）」）。
+- **每个人都要自己去 [developer.whoop.com](https://developer.whoop.com) 申请 Client ID 和 Client Secret**，在小工具的「⚙ 设置」里填进自己电脑。本项目不提供、也不收集任何人的 ID 和密钥，步骤见下面「下载使用」。
 - 两种看法：**桌面小工具**（半透明或不透明、可拖动、可置顶、可收起、可一键隐藏成小图标）和**网页大看板**（浏览器打开）。
 
 ## 和 WHOOP App 一样 / 不一样
@@ -24,7 +24,7 @@
 
 ## 小工具里有什么
 
-顶部三个圆环：**睡眠**、**恢复**、**负荷**，点圆环进入对应详情页，左上角「‹ 返回」回来；「‹ 今天 ›」可以前后翻天。下面七个分页：
+顶部三个圆环：**睡眠**、**恢复**、**负荷**，点圆环进入对应详情页，左上角「‹ 返回」回来；「‹ 今天 ›」可以前后翻天，点中间的日期打开**恢复日历**（每天按恢复度红黄绿上色，点哪天跳到哪天）。下面七个分页：
 
 | 分页 | 内容 | 对应 WHOOP App |
 |---|---|---|
@@ -49,12 +49,87 @@
 
 网页大看板（示例数据截图）
 
-## 第一次使用（Windows）
+## 下载使用（不用装 Node.js）
 
-### 1. 准备
+| 电脑 | 下载 |
+|---|---|
+| Windows 10 / 11 | [Bridgepulse-Windows.zip](https://github.com/HeathTeng/Bridgepulse/releases/latest/download/Bridgepulse-Windows.zip) |
+| Mac 苹果芯片（M1 / M2 / M3…，试用） | [Bridgepulse-Mac-AppleChip.zip](https://github.com/HeathTeng/Bridgepulse/releases/latest/download/Bridgepulse-Mac-AppleChip.zip) |
+| Mac Intel（试用） | [Bridgepulse-Mac-Intel.zip](https://github.com/HeathTeng/Bridgepulse/releases/latest/download/Bridgepulse-Mac-Intel.zip) |
+
+所有版本在 [Releases](https://github.com/HeathTeng/Bridgepulse/releases) 页面。
+
+1. **下载 → 解压**：Windows 在 zip 上右键 →「全部解压缩」，得到一个 Bridgepulse 文件夹；Mac 双击 zip，得到 Bridgepulse.app。
+2. **打开**：
+   - Windows：双击文件夹里的 **Bridgepulse.exe**。第一次如果出现「Windows 已保护你的电脑」，点 **「更多信息」→「仍要运行」**（没有购买代码签名证书，Windows 会提醒一次）。
+   - Mac：在 Bridgepulse.app 上 **右键 →「打开」→ 再点「打开」**；还被拦的话去「系统设置 → 隐私与安全性」，拉到下面点 **「仍要打开」**。Mac 版还没在真机上完整测过。
+3. **申请 WHOOP 密钥**：每个人都要自己申请：到 [developer.whoop.com](https://developer.whoop.com) 登录 WHOOP 账号，新建一个 App，Redirect URL（回调地址）填 `http://localhost:3000/callback`，权限全部勾选读取，保存后会看到 **Client ID** 和 **Client Secret**（约 5 分钟，每个格子怎么填见 [docs/试用步骤.md](docs/试用步骤.md)）。
+4. **填进设置**：第一次打开会直接出现设置框（以后点顶栏的「⚙ 设置」），把 Client ID 和 Client Secret 粘贴进去，点「保存」；再点 **连接 WHOOP**，在浏览器里登录并同意授权，小工具就会显示你的数据。
+
+以后每次双击 Bridgepulse.exe / Bridgepulse.app 就行。小工具每 30 分钟自动同步一次，也可以点右上角的刷新按钮。
+
+**设置和数据存在哪里**：下载版不写进解压出来的文件夹，而是放在系统给应用的文件夹里——Windows 是 `%APPDATA%\Bridgepulse`，Mac 是 `~/Library/Application Support/Bridgepulse`（里面的 `.env` 是你的密钥，`data` 是登录令牌和数据缓存）。换新版本时直接用新的压缩包替换旧的就行，设置和数据都还在。「⚙ 设置」框最下面也会显示实际位置。
+
+## 小工具的按钮
+
+| 按钮 | 作用 |
+|---|---|
+| 刷新 | 立即同步最新数据（平时每 30 分钟自动同步，电脑唤醒后也会补一次） |
+| 半圆 | 调整背景透明度，或者打开「不透明」 |
+| 图钉 | 窗口置顶 / 取消置顶 |
+| 箭头 | 收起成只显示三个圆环的小条，再点展开 |
+| 隐藏 | 缩成桌面上的小图标，点一下回来；快捷键 Windows 是 Ctrl+Alt+W、Mac 是 Control+Option+W（被别的软件占用时不能用，例如微信默认的「打开微信」） |
+| 💡 | 帮助：新手引导的文字版和常见问题 |
+| ⚙ | 设置：粘贴 WHOOP 的 Client ID 和 Secret，可选填 AI |
+| × | 关闭小工具 |
+
+按住顶栏可以拖动，位置、置顶、收起、隐藏、透明度都会记住。
+
+## 接入 AI（可选）
+
+「今日」页最上面的**今日建议**默认由本工具按规则生成，不联网。想让 AI 用口语帮你改写一遍，可以在「⚙ 设置」的「AI（可选）」里填三项，也可以直接写进 `.env`（`.env.example` 里有说明）：
+
+| 项目 | 填什么 |
+|---|---|
+| `AI_BASE_URL` | 接口地址，写到 `/chat/completions` 之前为止 |
+| `AI_API_KEY` | 在对应平台申请的密钥 |
+| `AI_MODEL` | 模型名称 |
+
+只要是 OpenAI 兼容的 `/chat/completions` 接口都能接，例如 DeepSeek、通义千问、Kimi、智谱、Claude、OpenAI。
+
+**例子 1：DeepSeek**
+
+```
+AI_BASE_URL=https://api.deepseek.com
+AI_API_KEY=你的 DeepSeek 密钥
+AI_MODEL=deepseek-chat
+```
+
+**例子 2：Claude（Anthropic 的 OpenAI 兼容接口）**
+
+```
+AI_BASE_URL=https://api.anthropic.com/v1
+AI_API_KEY=你的 Anthropic 密钥
+AI_MODEL=claude-sonnet-5-5
+```
+
+在「⚙ 设置」里保存后马上生效（手动改 `.env` 的话要重新打开小工具），建议卡片上会出现 **AI 帮我写** 按钮，旁边写着数据会发到哪个域名。
+
+- 只有点按钮时才会请求，不会自动发送；同一天的结果会先留着，再点一次才重新生成。
+- 发送的内容只有最近 7 天的数字摘要和本地规则建议，不含 WHOOP 令牌、姓名、邮箱。
+- 请求由本机的 `server.js` 发出，密钥不会传到页面，也不会写进日志。
+- **数据会发到你填的那家公司，按它的价格按用量收费**，用之前先看一下对方的隐私政策和价格。
+- 请求失败（密钥不对、余额不足、30 秒没回应等）时会显示中文原因，本地规则建议照常显示。
+- 示例数据模式下不会调用 AI。
+
+## 给开发者：用源码运行
+
+想改代码或者不想用下载版，可以直接用源码运行。这时 `.env` 和 `data` 就在项目文件夹里（和以前一样）。
+
+### 1. 准备（Windows）
 
 - 装好 **Node.js 18 或更高版本**（[nodejs.org](https://nodejs.org) 下载 LTS 版；装好后在 PowerShell 里输入 `node -v` 能看到版本号就行）。
-- 下载这个项目（GitHub 页面上的 Code → Download ZIP），解压到一个文件夹，例如 `D:\Bridgepulse`。
+- 下载这个项目（GitHub 页面上的 Code → Download ZIP，或 `git clone`），解压到一个文件夹，例如 `D:\Bridgepulse`。
 
 ### 2. 安装桌面窗口组件（只需一次）
 
@@ -100,35 +175,13 @@ notepad .env
 
 把 `WHOOP_CLIENT_ID=` 和 `WHOOP_CLIENT_SECRET=` 后面的中文提示换成你的值，保存后重新打开小工具。`.env` 里是你的密钥，**不要发给任何人，也不要上传到 GitHub**（项目已经通过 `.gitignore` 排除了它）。
 
-## Mac 版（试用，还没在真机上完整测过）
-
-Mac 上用法和 Windows 一样，只是双击的是 `.command` 文件：
+### Mac（源码运行，试用）
 
 1. 装好 Node.js 18 或更高版本（[nodejs.org](https://nodejs.org) 的 LTS 版 macOS 安装包）。
-2. 下载并解压这个项目，在文件夹里的 **启动桌面小工具.command** 上 **右键 →「打开」**（第一次直接双击会被系统拦下；还被拦就去「系统设置 → 隐私与安全性」点「仍要打开」）。只想看看效果就用 **示例数据预览.command**。
+2. 在项目文件夹里的 **启动桌面小工具.command** 上 **右键 →「打开」**（还被拦就去「系统设置 → 隐私与安全性」点「仍要打开」）。只想看看效果就用 **示例数据预览.command**。第一次运行时，启动文件会去掉这个文件夹里文件的「从网上下载」标记（`xattr -dr com.apple.quarantine`），不会碰电脑上的其他地方。
 3. 第一次会在「终端」窗口里自动运行 `npm install`（约 100MB），装好后打开小工具。小工具开着的时候不要关那个终端窗口。
-4. 后面和 Windows 一样：在「⚙ 设置」里粘贴 Client ID 和 Client Secret，点「连接 WHOOP」。隐藏成小图标的快捷键是 **Control+Option+W**。
 
-第一次运行时，启动文件会去掉 **Bridgepulse 这个文件夹**里文件的「从网上下载」标记（`xattr -dr com.apple.quarantine`），免得系统把里面的程序一个个拦下来；不会碰电脑上的其他地方。
-
-给第一次用的同学看的完整步骤（Windows 和 Mac 两节，含申请 WHOOP 开发者 ID 每个格子怎么填）：**[docs/试用步骤.md](docs/试用步骤.md)**。
-
-## 小工具的按钮
-
-| 按钮 | 作用 |
-|---|---|
-| 刷新 | 立即同步最新数据（平时每 30 分钟自动同步，电脑唤醒后也会补一次） |
-| 半圆 | 调整背景透明度，或者打开「不透明」 |
-| 图钉 | 窗口置顶 / 取消置顶 |
-| 箭头 | 收起成只显示三个圆环的小条，再点展开 |
-| 隐藏 | 缩成桌面上的小图标，点一下回来；快捷键 Windows 是 Ctrl+Alt+W、Mac 是 Control+Option+W（被别的软件占用时不能用，例如微信默认的「打开微信」） |
-| 💡 | 帮助：新手引导的文字版和常见问题 |
-| ⚙ | 设置：粘贴 WHOOP 的 Client ID 和 Secret，可选填 AI |
-| × | 关闭小工具 |
-
-按住顶栏可以拖动，位置、置顶、收起、隐藏、透明度都会记住。
-
-## 网页大看板
+### 网页大看板
 
 不想用桌面窗口时，也可以用浏览器看：
 
@@ -138,68 +191,39 @@ npm start
 
 然后打开 http://localhost:3000 。按 `Ctrl + C` 停止。
 
-## 接入 AI（可选）
+### 发布新版本
 
-「今日」页最上面的**今日建议**默认由本工具按规则生成，不联网。想让 AI 用口语帮你改写一遍，可以在「⚙ 设置」的「AI（可选）」里填三项，也可以直接写进 `.env`（`.env.example` 里有说明）：
-
-| 项目 | 填什么 |
-|---|---|
-| `AI_BASE_URL` | 接口地址，写到 `/chat/completions` 之前为止 |
-| `AI_API_KEY` | 在对应平台申请的密钥 |
-| `AI_MODEL` | 模型名称 |
-
-只要是 OpenAI 兼容的 `/chat/completions` 接口都能接，例如 DeepSeek、通义千问、Kimi、智谱、Claude、OpenAI。
-
-**例子 1：DeepSeek**
-
-```
-AI_BASE_URL=https://api.deepseek.com
-AI_API_KEY=你的 DeepSeek 密钥
-AI_MODEL=deepseek-chat
-```
-
-**例子 2：Claude（Anthropic 的 OpenAI 兼容接口）**
-
-```
-AI_BASE_URL=https://api.anthropic.com/v1
-AI_API_KEY=你的 Anthropic 密钥
-AI_MODEL=claude-sonnet-5-5
-```
-
-在「⚙ 设置」里保存后马上生效（手动改 `.env` 的话要重新打开小工具），建议卡片上会出现 **AI 帮我写** 按钮，旁边写着数据会发到哪个域名。
-
-- 只有点按钮时才会请求，不会自动发送；同一天的结果会先留着，再点一次才重新生成。
-- 发送的内容只有最近 7 天的数字摘要和本地规则建议，不含 WHOOP 令牌、姓名、邮箱。
-- 请求由本机的 `server.js` 发出，密钥不会传到页面，也不会写进日志。
-- **数据会发到你填的那家公司，按它的价格按用量收费**，用之前先看一下对方的隐私政策和价格。
-- 请求失败（密钥不对、余额不足、30 秒没回应等）时会显示中文原因，本地规则建议照常显示。
-- 示例数据模式下不会调用 AI。
+推送 `v*` 标签后，GitHub Actions（`.github/workflows/release.yml`）会自动打出三个压缩包并传到这个标签的 Release，文件名固定不变。不用 electron-builder：直接把项目文件放进官方 Electron 程序的 `resources/app`。图标源文件是 `assets/icon.svg`，改了以后运行 `npx electron scripts/make-icons.js` 和 `node scripts/make-ico.js` 重新生成图片。
 
 ## 文件说明
 
 | 文件 | 作用 |
 |---|---|
-| `启动桌面小工具.bat` / `示例数据预览.bat` | Windows 双击启动 |
-| `启动桌面小工具.command` / `示例数据预览.command` | Mac 双击启动（试用） |
+| `启动桌面小工具.bat` / `示例数据预览.bat` | Windows 源码运行时双击启动 |
+| `启动桌面小工具.command` / `示例数据预览.command` | Mac 源码运行时双击启动（试用） |
 | `docs/试用步骤.md` | 给第一次用的同学看的 Windows / Mac 步骤 |
 | `electron/` | 桌面窗口（无边框、半透明、置顶、记住位置） |
 | `server.js` | 本地小服务器：登录、同步数据、提供页面 |
 | `lib/whoop.js` | 和 WHOOP 官方 API 打交道（OAuth 授权、分页读取） |
 | `lib/demo.js` | 生成示例数据 |
+| `lib/paths.js` | 设置和数据放在哪（源码运行在项目文件夹，下载版在系统的应用文件夹） |
 | `public/core.js` | 共用逻辑：个人基线、中文解读、睡眠规划、健康监测、周报、图表 |
 | `public/brand.js` | 产品名和副标题（只写在这一处） |
+| `public/calendar.js`、`calendar.css` | 恢复日历（小工具和网页大看板共用） |
 | `public/guide.js`、`guide-ui.js`、`guide.css` | 新手引导：文字、界面、样式 |
 | `docs/FAQ.md` | 常见问题（「💡 帮助」最后一页读的就是它） |
 | `public/widget.*` | 桌面小工具页面 |
 | `public/index.html`、`app.js`、`style.css` | 网页大看板 |
-| `data/` | 运行后自动生成，存放登录令牌、数据缓存、窗口设置，已被 `.gitignore` 排除 |
+| `assets/` | 图标：`icon.svg` 是唯一源文件，其余 PNG 和 `icon.ico` 由 `scripts/` 里的脚本生成 |
+| `.github/workflows/release.yml` | 推送版本标签时自动打包三个下载用的压缩包 |
+| `data/` | 源码运行时自动生成，存放登录令牌、数据缓存、窗口设置，已被 `.gitignore` 排除 |
 
 ## 常见问题
 
 - **提示"还没有数据"**：新设备至少要戴着睡一晚，WHOOP 才会算出第一份恢复度。
 - **提示"请求太频繁"**：WHOOP 限制每分钟 100 次请求，等一分钟再刷新。
-- **想重新登录**：用网页大看板（`npm start`）点 **退出登录**，会删除本机保存的令牌和缓存。
-- **小工具跑到屏幕外了**：删除项目文件夹里 `data` 文件夹中的 `widget.json` 后重新打开，会回到屏幕右上角。
+- **想重新登录**：小工具开着的时候，用浏览器打开 http://localhost:3000 （网页大看板），点 **退出登录**，会删除本机保存的令牌和缓存。
+- **小工具跑到屏幕外了**：关掉小工具，删除 `data` 文件夹（位置见上面「设置和数据存在哪里」）中的 `widget.json` 后重新打开，会回到屏幕右上角。
 
 本工具只做数据解读和一般性参考，不构成医疗建议。
 

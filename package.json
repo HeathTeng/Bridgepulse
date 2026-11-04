@@ -1,6 +1,6 @@
 {
   "name": "whoop-dashboard-cn",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "description": "Bridgepulse 脉桥：WHOOP 数据中文助手（非官方，与 WHOOP 公司无关），桌面小工具和网页看板，只在本机运行",
   "private": true,
   "license": "MIT",
