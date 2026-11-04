@@ -9,13 +9,19 @@ name: release
 on:
   push:
     tags: ['v*']
+  # 打包失败修好后，可以手动对已有的标签重新打包（不用删标签重推）：gh workflow run release.yml -f tag=v0.4.0
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: '要上传到哪个版本的 Release，例如 v0.4.0'
+        required: true
 
 permissions:
   contents: write
 
 env:
   GH_TOKEN: ${{ github.token }}
-  TAG: ${{ github.ref_name }}
+  TAG: ${{ inputs.tag || github.ref_name }}
 
 jobs:
   # 先确保 Release 存在（通常已经手动建好并写了说明），后面两个打包任务只往里传文件
@@ -37,6 +43,8 @@ jobs:
         with:
           node-version: 22
       - run: npm ci
+      # 这个版本的 Electron 安装时不下载程序（第一次运行才下载），这里主动下载到 node_modules/electron/dist，并按包里的 checksums.json 校验
+      - run: node node_modules/electron/install.js && ls node_modules/electron/dist
       - name: 组装 Bridgepulse 文件夹
         run: |
           set -e
